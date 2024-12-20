@@ -47,7 +47,7 @@ class SimpleTrainPreProcessor:
     @staticmethod
     def read_queries(queries):
         qmap = {}
-        with open(queries) as f:
+        with open(queries, encoding="utf8") as f:
             for l in f:
                 qid, qry = l.strip().split("\t")
                 qmap[qid] = qry

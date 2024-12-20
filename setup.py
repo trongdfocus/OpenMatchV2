@@ -21,8 +21,9 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.7",
     install_requires=[
-        "transformers>=4.21.3",
+        "transformers==4.45.2",
         "datasets>=2.10.1",
+        "sentence-transformers==3.1.1",
         "sentencepiece",
     ],
 )

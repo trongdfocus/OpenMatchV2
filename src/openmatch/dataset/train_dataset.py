@@ -70,14 +70,21 @@ class StreamTrainDatasetMixin(IterableDataset):
         self.all_columns = sample.keys()
 
     def __len__(self):
-        concat_filenames = " ".join(self.data_files)
+        # concat_filenames = " ".join(self.data_files)
+        # count = 0
+        # with os.popen("wc -l {}".format(concat_filenames)) as f:
+        #     for line in f:
+        #         lc, filename = line.strip().split()
+        #         lc = int(lc)
+        #         if filename != "total":
+        #             count += lc
+        # return count
         count = 0
-        with os.popen("wc -l {}".format(concat_filenames)) as f:
-            for line in f:
-                lc, filename = line.strip().split()
-                lc = int(lc)
-                if filename != "total":
-                    count += lc
+        for file in self.data_files:
+            if os.path.exists(file):  # Ensure the file exists
+                with open(file, 'r', encoding='utf-8') as f:
+                    for _ in f:
+                        count += 1  # Increment line count for each line in the file
         return count
 
     def __iter__(self):
