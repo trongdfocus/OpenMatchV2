@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import random
+from copy import copy
 from typing import Callable, Dict, List, Union
 
 from datasets import load_dataset
@@ -138,6 +139,8 @@ class DRTrainDataset(TrainDatasetBase):
             qry = example["query"]
             encoded_query = self.create_one_example(qry, is_query=True)
             encoded_passages = []
+            # encoded_passages = copy(encoded_query)
+            # encoded_passages.data['input_ids'] = []
             group_positives = example["positives"]
             group_negatives = example["negatives"]
 
@@ -146,6 +149,7 @@ class DRTrainDataset(TrainDatasetBase):
             else:
                 pos_psg = group_positives[(hashed_seed + epoch) % len(group_positives)]
             encoded_passages.append(self.create_one_example(pos_psg))
+            # encoded_passages.data['input_ids'].append(self.create_one_example(pos_psg).data['input_ids'])
 
             negative_size = self.data_args.train_n_passages - 1
             if len(group_negatives) < negative_size:
@@ -168,8 +172,10 @@ class DRTrainDataset(TrainDatasetBase):
                 negs = negs[_offset : _offset + negative_size]
 
             for neg_psg in negs:
+                # encoded_passages.data['input_ids'].append(self.create_one_example(neg_psg).data['input_ids'])
                 encoded_passages.append(self.create_one_example(neg_psg))
 
+            # assert len(encoded_passages.data['input_ids']) == self.data_args.train_n_passages
             assert len(encoded_passages) == self.data_args.train_n_passages
 
             # Avoid name conflict with query in the original dataset

@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import datasets
 import torch
 import torch.distributed as dist
-from torch.utils.data import DataLoader
+from torch import nn
+from torch.utils.data import DataLoader, Dataset
 from transformers.file_utils import is_datasets_available
 from transformers.trainer import TRAINING_ARGS_NAME, Trainer
 from transformers.trainer_pt_utils import IterableDatasetShard
@@ -103,6 +104,59 @@ class DRTrainer(Trainer):
             num_workers=self.args.dataloader_num_workers,
             pin_memory=self.args.dataloader_pin_memory,
         )
+
+    def get_eval_dataloader(self, eval_dataset: Optional[Union[str, Dataset]] = None) -> DataLoader:
+        if self.eval_dataset is None:
+            raise ValueError("Trainer: evaluation requires a eval_dataset.")
+
+        eval_dataset = self.eval_dataset
+        if is_datasets_available() and isinstance(eval_dataset, datasets.Dataset):
+            eval_dataset = self._remove_unused_columns(eval_dataset, description="training")
+
+        if isinstance(eval_dataset, torch.utils.data.IterableDataset):
+            if self.args.world_size > 1:
+                eval_dataset = IterableDatasetShard(
+                    eval_dataset,
+                    batch_size=self.args.eval_batch_size,
+                    drop_last=self.args.dataloader_drop_last,
+                    num_processes=self.args.world_size,
+                    process_index=self.args.process_index,
+                )
+
+            return DataLoader(
+                eval_dataset,
+                batch_size=self.args.per_device_eval_batch_size,
+                collate_fn=self.data_collator,
+                drop_last=self.args.dataloader_drop_last,
+                num_workers=self.args.dataloader_num_workers,
+                pin_memory=self.args.dataloader_pin_memory,
+            )
+
+        eval_sampler = self._get_eval_sampler(eval_dataset=eval_dataset)
+
+        return DataLoader(
+            eval_dataset,
+            batch_size=self.args.eval_batch_size,
+            sampler=eval_sampler,
+            collate_fn=self.data_collator,
+            drop_last=self.args.dataloader_drop_last,
+            num_workers=self.args.dataloader_num_workers,
+            pin_memory=self.args.dataloader_pin_memory,
+        )
+
+    def prediction_step(
+        self,
+        model: nn.Module,
+        inputs: List[Dict[str, Union[torch.Tensor, Any]]],
+        prediction_loss_only: bool,
+        ignore_keys: Optional[List[str]] = None,
+    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
+
+        with torch.no_grad():
+            loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
+            loss = loss.mean().detach()
+            return (loss, None, None)
+
 
     def compute_loss(self, model, inputs, return_outputs=False):
         if self.args.distillation:
