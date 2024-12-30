@@ -39,7 +39,7 @@ def load_ranking(rank_file, relevance, n_sample, depth):
                 return
 
 
-random.seed(datetime.now())
+random.seed(datetime.now().timestamp())
 parser = ArgumentParser()
 parser.add_argument("--tokenizer_name", required=True)
 parser.add_argument("--hn_file", required=True)
@@ -55,6 +55,21 @@ parser.add_argument("--n_sample", type=int, default=30)
 parser.add_argument("--depth", type=int, default=200)
 parser.add_argument("--mp_chunk_size", type=int, default=500)
 parser.add_argument("--shard_size", type=int, default=45000)
+
+# parser.add_argument("--tokenizer_name", default='t5-base')
+# parser.add_argument("--hn_file", default="D:/Proj/embedded_reranking/OpenMatchV2/marco/t5/train.trec")
+# parser.add_argument("--qrels", default="D:/Proj/embedded_reranking/OpenMatchV2/marco/qrels.train.tsv")
+# parser.add_argument("--queries", default="D:/Proj/embedded_reranking/OpenMatchV2/marco/train.query.txt")
+# parser.add_argument("--collection", default="D:/Proj/embedded_reranking/OpenMatchV2/marco/corpus.tsv")
+# parser.add_argument("--save_to", default="D:/Proj/embedded_reranking/OpenMatchV2/msmarco/t5/")
+# parser.add_argument("--doc_template", type=str, default="Title: <title> Text: <text>")
+# parser.add_argument("--query_template", type=str, default=None)
+#
+# parser.add_argument("--truncate", type=int, default=128)
+# parser.add_argument("--n_sample", type=int, default=30)
+# parser.add_argument("--depth", type=int, default=200)
+# parser.add_argument("--mp_chunk_size", type=int, default=500)
+# parser.add_argument("--shard_size", type=int, default=45000)
 
 args = parser.parse_args()
 

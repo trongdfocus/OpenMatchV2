@@ -76,6 +76,18 @@ def main():
         cache_dir=model_args.cache_dir,
     )
 
+    print(model)
+    #
+    # # For many Hugging Face models:
+    # print(f"Number of parameters: {model.num_parameters()}")
+    #
+    # total_params = sum(p.numel() for p in model.parameters())
+    # print(f"Total parameters: {total_params}")
+    #
+    # trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    # print(f"Trainable parameters: {trainable_params}")
+    #
+    # 1/0
     if model_args.param_efficient_method:
         model_class = get_delta_model_class(model_args.param_efficient_method)
         delta_model = model_class.from_finetuned(
